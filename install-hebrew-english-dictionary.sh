@@ -23,6 +23,7 @@ DDK="$WORK/ddk"
 SRC="$WORK/src"
 DEST="$HOME/Library/Dictionaries"
 DICT_NAME="HebrewEnglish"
+BUNDLE_ID="org.wiktionary.dictionary.hebrew-english"
 DDK_RAW="https://raw.githubusercontent.com/nanoskript/dictionary-development-kit/main/bin"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 GEN="$HERE/make_appledict.py"
@@ -120,19 +121,32 @@ rm -rf "$DEST/$DICT_NAME.dictionary"
 cp -R "$BUNDLE" "$DEST/"
 touch "$DEST"
 
+# ----------------------------------------------------------------- activate
+# Saves a trip to Dictionary > Settings. Dictionary.app rewrites these prefs on
+# quit, so it has to be closed first; -array-add appends without clobbering the
+# dictionaries already enabled.
+say "Enabling it for system-wide Look Up"
+osascript -e 'tell application "Dictionary" to quit' >/dev/null 2>&1 || true
+if defaults read com.apple.DictionaryServices DCSActiveDictionaries 2>/dev/null \
+   | grep -q "$BUNDLE_ID"; then
+  echo "    already enabled"
+else
+  defaults write com.apple.DictionaryServices DCSActiveDictionaries -array-add "$BUNDLE_ID"
+  echo "    added to DCSActiveDictionaries"
+fi
+killall -HUP cfprefsd >/dev/null 2>&1 || true
+
 cat <<EOF
 
-Done. $(du -sh "$DEST/$DICT_NAME.dictionary" | cut -f1) installed at
+Done. $(du -sh "$DEST/$DICT_NAME.dictionary" | cut -f1) installed and enabled at
   $DEST/$DICT_NAME.dictionary
 
-Last steps, in the Dictionary app:
-  1. quit Dictionary completely (Cmd-Q) and reopen it
-  2. Dictionary > Settings, tick "Hebrew – English (Wiktionary)"
-  3. drag it up the list if you want it to win over the English dictionary
+Look Up (Ctrl-Cmd-D, or three-finger tap) now works on Hebrew and English words
+anywhere in macOS. Words carrying ב/ה/ו/כ/ל/מ/ש prefixes are indexed too, so
+בבית finds בית.
 
-Then Look Up (Ctrl-Cmd-D, or three-finger tap) works on Hebrew and English
-words anywhere in macOS. Words carrying ב/ה/ו/כ/ל/מ/ש prefixes are indexed
-too, so בבית finds בית.
+If you want it to outrank Apple's built-in Hebrew dictionaries, open Dictionary
+> Settings and drag "Hebrew – English (Wiktionary)" up the list.
 
 To remove it:  rm -rf "$DEST/$DICT_NAME.dictionary"
 EOF

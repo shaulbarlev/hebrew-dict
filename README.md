@@ -4,14 +4,17 @@ Build a Hebrew ⇄ English dictionary for the macOS **Dictionary.app**, from
 Wiktionary data, with one command. No Xcode, no Apple ID, no Rosetta.
 
 ```bash
-git clone https://github.com/<you>/hebrew-dict
+git clone https://github.com/shaulbarlev/hebrew-dict
 cd hebrew-dict
 bash install-hebrew-english-dictionary.sh
 ```
 
-Then quit Dictionary.app, reopen it, and tick **Hebrew – English (Wiktionary)**
-in Settings. Look Up (⌃⌘D, or three-finger tap) now works on Hebrew text
-anywhere in macOS.
+That's the whole install. The script builds the bundle, drops it in
+`~/Library/Dictionaries`, and enables it — Look Up (⌃⌘D, or three-finger tap)
+then works on Hebrew text anywhere in macOS, no Settings trip and no restart.
+
+If you want it to outrank Apple's built-in Hebrew dictionaries, open Dictionary
+> Settings and drag **Hebrew – English (Wiktionary)** up the list.
 
 ---
 
@@ -98,6 +101,10 @@ filename and falls back to scraping the first `.jsonl` link off
 `kaikki.org/dictionary/Hebrew/` — so a reorganisation upstream doesn't break it.
 The extract is cached; re-runs don't re-download.
 
+As of the September 2026 extract that works out to 18,007 source lines →
+**14,272 Hebrew headwords** and **14,362 English headwords**, 28,634 entries,
+about 21 MB installed.
+
 Notably **not** usable here, each checked: FreeDict has no Hebrew pair, WikDict
 covers 26 languages and Hebrew isn't among them, and the Wiktionary-derived
 StarDict collections don't ship one either.
@@ -121,10 +128,23 @@ The generator indexes each lemma under:
 - and each of the inseparable prefixes **ב ה ו כ ל מ ש** plus the common stacks
   **וב וה ול ומ וש כש מה שב של שה לכש וכש**.
 
-The prefixed keys carry `d:priority="2"`, an AppleDict attribute that ranks a
-key below exact matches, so they never outrank a real headword. Cost is roughly
-19× the index keys — the build takes a few minutes and the bundle grows — which
-is a good trade for a dictionary that works on unedited text.
+Cost is roughly 19× the index keys — the build takes a few minutes and the
+bundle grows — which is a good trade for a dictionary that works on unedited
+text.
+
+Two things bit us here, both found only by querying the built bundle, and both
+worth knowing if you build on this:
+
+- **`d:priority="2"` does not rank a key lower — it hides it.** The obvious
+  design is to mark the prefixed keys with the AppleDict `d:priority`
+  attribute so they sit below exact matches. In practice the build kit treats
+  priority > 0 as *omit from lookup*, so every prefixed form resolved to
+  nothing at all. The prefixed keys are plain `d:index` entries now.
+- **Punctuated headwords collide with plain ones.** Stripping maqaf and
+  gershayim to build a lookup key turns the root `ב־י־ת` and the letter name
+  `בי״ת` both into the key `בית`, where they outrank the actual noun — `בבית`
+  came back as "Beth, the second letter of the Hebrew alphabet". Headwords
+  containing punctuation now keep only their literal key.
 
 This is morphologically naive: it strips prefixes off lemmas, it doesn't
 conjugate or decline. Inflected verb forms mostly still miss. A real fix would
@@ -157,6 +177,7 @@ parts of speech in small caps, and the stylesheet carries a
 |---|---|
 | `install-hebrew-english-dictionary.sh` | The pipeline: preflight, fetch kit, fetch data, generate, build, install. |
 | `make_appledict.py` | JSONL → AppleDict XML + CSS + Info.plist. Standard library only. |
+| `test_make_appledict.py` | Self-check for the index-key and gloss logic. `python3 test_make_appledict.py`. |
 | `BRIEF-hebrew-dictionary.md` | Handoff brief written for a coding agent, kept because it doubles as a debugging runbook. |
 
 ## Requirements
