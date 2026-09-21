@@ -1,0 +1,12 @@
+# build artefacts (everything lives under ~/Library/Caches/heb-eng-dict,
+# but keep these in case anyone builds in-tree)
+objects/
+build/
+*.dictionary/
+*.jsonl
+HebrewEnglish.xml
+
+# macOS
+.DS_Store
+__pycache__/
+*.pyc
