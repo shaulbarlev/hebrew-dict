@@ -100,26 +100,16 @@ scripts are drafts, not gospel.
 
 ---
 
-## Build results (2026-09-21, run on this Mac)
+## Build results (2026-09-21)
 
-Installed and working: 21 MB at `~/Library/Dictionaries/HebrewEnglish.dictionary`.
-18,007 source lines → 14,272 Hebrew headwords, 14,362 English, 28,634 entries.
+Ran clean. 14,272 Hebrew headwords, 14,362 English, 28,634 entries, 21 MB.
 
-Two fixes were needed in `make_appledict.py`:
+Two fixes were needed in `make_appledict.py` before any prefixed form resolved:
+`d:priority="2"` hides a key instead of ranking it lower, and punctuation
+stripping collided `ב־י־ת` and `בי״ת` onto the key `בית`. The README explains
+both. The installer now also enables the dictionary in `DCSActiveDictionaries`,
+so step 2 below (ticking it in Settings) is no longer needed.
 
-1. **`d:priority="2"` hid every prefixed key.** The DDK treats priority > 0 as
-   "not returned by lookup", not "ranked lower" — so `בבית` resolved to nothing
-   at all. Dropped the attribute; prefixed forms are plain indexes now.
-2. **Punctuated headwords collided with real words.** `PUNCT_RE` strips maqaf
-   and gershayim, so the root `ב־י־ת` and the letter name `בי״ת` both reduced to
-   the key `בית` and outranked the actual noun — `בבית` returned "Beth, the
-   second letter". Those forms now keep only their literal key.
-
-Verified via `DCSCopyTextDefinition` against the installed bundle: `בית`,
-`בבית`, `ובבית`, `שבבית` all hit בַּיִת; `ספר` and `מהספר` hit סֵפֶר; `house`
-and `book` list the Hebrew equivalents. `test_make_appledict.py` covers the
-key-generation logic.
-
-The dictionary was also added to `DCSActiveDictionaries` in
-`com.apple.DictionaryServices`, so Look Up works without visiting Settings.
-Apple's own `he.oup` / `he-en.oup` were already active and rank above it.
+Checked with `DCSCopyTextDefinition` against the installed bundle: `בית`,
+`בבית`, `ובבית` and `שבבית` all reach בַּיִת, `ספר` and `מהספר` reach סֵפֶר,
+`house` and `book` list Hebrew equivalents.

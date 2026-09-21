@@ -9,12 +9,13 @@ cd hebrew-dict
 bash install-hebrew-english-dictionary.sh
 ```
 
-That's the whole install. The script builds the bundle, drops it in
-`~/Library/Dictionaries`, and enables it — Look Up (⌃⌘D, or three-finger tap)
-then works on Hebrew text anywhere in macOS, no Settings trip and no restart.
+The script builds the bundle, installs it into `~/Library/Dictionaries`, and
+enables it, so Look Up (⌃⌘D, or three-finger tap) works on Hebrew text right
+away. You don't need to restart anything or open Settings.
 
-If you want it to outrank Apple's built-in Hebrew dictionaries, open Dictionary
-> Settings and drag **Hebrew – English (Wiktionary)** up the list.
+Apple's own Hebrew dictionaries, if you have them, still win on words they
+cover. To change that, drag Hebrew – English (Wiktionary) up the list in
+Dictionary > Settings.
 
 ---
 
@@ -101,9 +102,8 @@ filename and falls back to scraping the first `.jsonl` link off
 `kaikki.org/dictionary/Hebrew/` — so a reorganisation upstream doesn't break it.
 The extract is cached; re-runs don't re-download.
 
-As of the September 2026 extract that works out to 18,007 source lines →
-**14,272 Hebrew headwords** and **14,362 English headwords**, 28,634 entries,
-about 21 MB installed.
+The September 2026 extract has 18,007 lines, which come out as 14,272 Hebrew
+headwords, 14,362 English headwords, 28,634 entries, and about 21 MB installed.
 
 Notably **not** usable here, each checked: FreeDict has no Hebrew pair, WikDict
 covers 26 languages and Hebrew isn't among them, and the Wiktionary-derived
@@ -132,19 +132,18 @@ Cost is roughly 19× the index keys — the build takes a few minutes and the
 bundle grows — which is a good trade for a dictionary that works on unedited
 text.
 
-Two things bit us here, both found only by querying the built bundle, and both
-worth knowing if you build on this:
+Two bugs here only surfaced when querying the finished bundle.
 
-- **`d:priority="2"` does not rank a key lower — it hides it.** The obvious
-  design is to mark the prefixed keys with the AppleDict `d:priority`
-  attribute so they sit below exact matches. In practice the build kit treats
-  priority > 0 as *omit from lookup*, so every prefixed form resolved to
-  nothing at all. The prefixed keys are plain `d:index` entries now.
-- **Punctuated headwords collide with plain ones.** Stripping maqaf and
-  gershayim to build a lookup key turns the root `ב־י־ת` and the letter name
-  `בי״ת` both into the key `בית`, where they outrank the actual noun — `בבית`
-  came back as "Beth, the second letter of the Hebrew alphabet". Headwords
-  containing punctuation now keep only their literal key.
+The first: `d:priority="2"` hides a key rather than ranking it lower. Marking
+the prefixed keys with it looks like the right design, since they should sit
+below exact matches, but the build kit reads priority > 0 as "leave out of
+lookup" and no prefixed form resolved at all. They are plain `d:index` entries
+now.
+
+The second was punctuation. Stripping maqaf and gershayim to build a lookup key
+turns the root `ב־י־ת` and the letter name `בי״ת` both into `בית`, where they
+outranked the actual noun, so `בבית` came back as "Beth, the second letter of
+the Hebrew alphabet". Punctuated headwords now keep only their literal key.
 
 This is morphologically naive: it strips prefixes off lemmas, it doesn't
 conjugate or decline. Inflected verb forms mostly still miss. A real fix would
