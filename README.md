@@ -1,7 +1,18 @@
 # hebrew-dict
 
-Build a Hebrew ⇄ English dictionary for the macOS **Dictionary.app**, from
-Wiktionary data, with one command. No Xcode, no Apple ID, no Rosetta.
+A Hebrew ⇄ English dictionary for the macOS **Dictionary.app**, built from
+Wiktionary data. No Xcode, no Apple ID, no Rosetta.
+
+Take the prebuilt bundle if you just want the dictionary. It is about 6 MB and
+needs nothing but bash and curl, no python and no build step:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/shaulbarlev/hebrew-dict/main/install-prebuilt.sh | bash
+```
+
+Build it yourself if you want current Wiktionary data, or you want to change
+how the index is generated. This needs `python3` and downloads a 300 MB
+extract, then takes a few minutes:
 
 ```bash
 git clone https://github.com/shaulbarlev/hebrew-dict
@@ -9,9 +20,9 @@ cd hebrew-dict
 bash install-hebrew-english-dictionary.sh
 ```
 
-The script builds the bundle, installs it into `~/Library/Dictionaries`, and
-enables it, so Look Up (⌃⌘D, or three-finger tap) works on Hebrew text right
-away. You don't need to restart anything or open Settings.
+Both install into `~/Library/Dictionaries` and enable the dictionary, so Look
+Up (⌃⌘D, or three-finger tap) works on Hebrew text right away. You don't need
+to restart anything or open Settings.
 
 Apple's own Hebrew dictionaries, if you have them, still win on words they
 cover. To change that, drag Hebrew – English (Wiktionary) up the list in
@@ -174,6 +185,7 @@ parts of speech in small caps, and the stylesheet carries a
 
 | File | What it is |
 |---|---|
+| `install-prebuilt.sh` | Downloads the built bundle from the latest release and installs it. Bash, curl and tar only. |
 | `install-hebrew-english-dictionary.sh` | The pipeline: preflight, fetch kit, fetch data, generate, build, install. |
 | `make_appledict.py` | JSONL → AppleDict XML + CSS + Info.plist. Standard library only. |
 | `test_make_appledict.py` | Self-check for the index-key and gloss logic. `python3 test_make_appledict.py`. |
